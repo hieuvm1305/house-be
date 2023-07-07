@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:14-alpine
+    restart: always
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      PGDATA: /var/lib/postgresql/data/pg_data
+    ports:
+      - "5432:5432"
+    networks:
+      - house
+  backend:
+    build: 
+      context: ./housebackend
+      dockerfile: Dockerfile
+    volumes:
+      - .housebackend:/housebackend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - house
+    command: >
+      sh -c "python3 manage.py runserver 0.0.0.0:8000"
+    restart: on-failure
+networks:
+  house:
+    driver: bridge
+    name: house-network
+volumes:
+  pg_data:
